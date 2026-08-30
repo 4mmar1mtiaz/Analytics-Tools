@@ -4,7 +4,7 @@
 // Author: Ammar Imtiaz
 // Website: www.ammarimtiaz.com
 // LinkedIn: linkedin.com/in/ammarimtiaz
-// GitHub: github.com/ammar1mtiaz
+// GitHub: github.com/4mmar1mtiaz
 // ================================================================
 
 // ===== HELPER: Colour functions =====

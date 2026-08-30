@@ -238,7 +238,7 @@ Built by **Ammar Imtiaz**, who builds software for government contracting, SEO a
 
 - Website: [www.ammarimtiaz.com](https://www.ammarimtiaz.com)
 - LinkedIn: [linkedin.com/in/ammarimtiaz](https://www.linkedin.com/in/ammarimtiaz/)
-- GitHub: [github.com/ammar1mtiaz](https://github.com/ammar1mtiaz)
+- GitHub: [github.com/4mmar1mtiaz](https://github.com/4mmar1mtiaz)
 
 If one of these saved you an afternoon, a star on the repo is the cheapest way to say so.
 
