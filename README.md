@@ -1,6 +1,6 @@
 # Analytics Tools
 
-**Free analytics tools that run in your terminal.** Read a GA4 export, find the quick wins in Search Console, catch content decay, grade a landing page, and check whether an A/B test actually decided anything. Every tool is one file, has zero dependencies, and does its arithmetic in code rather than asking a model to do sums.
+**17 free analytics tools that run in your terminal.** Read a GA4 export, find the quick wins in Search Console, catch content decay, grade a landing page, audit your UTMs, and check whether an A/B test actually decided anything. Every tool is one file, has zero dependencies, and does its arithmetic in code rather than asking a model to do sums.
 
 Built by [Ammar Imtiaz](https://www.ammarimtiaz.com). MIT licensed.
 
@@ -36,8 +36,15 @@ These do the opposite. The weights are printed. The click-through-rate curve is 
 | [`landing-page-comparator`](#landing-page-comparator) | Compares two pages metric by metric and runs a significance test on the difference | Which page wins, and is the win real? |
 | [`ab-test-significance-calculator`](#ab-test-significance-calculator) | Runs the z-test, the confidence interval and the sanity checks on a split test | Can I call this test yet? |
 | [`utm-tracking-auditor`](#utm-tracking-auditor) | Finds the taxonomy breaks that split one channel into five rows | Why does my source report look like that? |
+| [`ga4-traffic-report`](#ga4-traffic-report) | Turns a GA4 pages export into a concentration report — which pages carry the site | Where does my traffic actually come from? |
+| [`traffic-source-analyzer`](#traffic-source-analyzer) | Compares each channel's share of traffic against its share of conversions | Which channel is carrying me, and which is just noise? |
+| [`low-ctr-page-finder`](#low-ctr-page-finder) | Finds pages under-performing against their ranking position, not just low CTR | Which titles are costing me clicks I already earned? |
+| [`content-refresh-prioritizer`](#content-refresh-prioritizer) | Builds a ranked refresh queue from traffic at stake, decline, position and staleness | What do I update this month? |
+| [`cro-audit-checker`](#cro-audit-checker) | Scores a page on eight conversion categories with the thresholds printed | Why is this page not converting? |
+| [`cta-analyzer`](#cta-analyzer) | Finds every call to action, scores its wording, and checks distribution and goal fit | Are my CTAs doing anything? |
+| [`attribution-gap-checker`](#attribution-gap-checker) | Compares platform-reported conversions against analytics and diagnoses the gap | Why does Meta claim 690 and GA4 claim 412? |
 
-More are in progress. The list above is what passes its own tests today.
+Three more are still in the workshop. The list above is what passes its own tests today.
 
 ---
 
@@ -84,6 +91,18 @@ Every tool responds to `--help` and to `--demo`.
 
 ## The tools in detail
 
+### Read the report
+
+#### `ga4-traffic-report`
+*GA4 traffic report.* Turns a pages export into the one thing the GA4 interface will not show you plainly: concentration. Which pages make the first 50% of your traffic, which make the first 80%, which pages are in the top quartile of sessions but below half the site median for conversion, and how much of the site is pages under 1% that nobody should be spending time on.
+
+```bash
+node tools/ga4-traffic-report.js ga4-pages-export.csv
+```
+
+#### `traffic-source-analyzer`
+*Channel mix and dependency risk.* Sets each channel's share of sessions next to its share of conversions. A channel bringing 40% of the traffic and 8% of the conversions is a different problem from one bringing 8% and 40%, and the ratio between the two shares is the number that separates them. It also states plainly when a single channel carries more than half of everything, which is the risk nobody puts in the monthly report.
+
 ### Find the opportunity
 
 #### `gsc-quick-wins-finder`
@@ -95,6 +114,12 @@ node tools/gsc-quick-wins-finder.js search-console-queries.csv
 
 #### `seo-opportunity-scorer`
 *Keyword priority scoring.* Scores every keyword on seven factors — volume, position, commercial intent, competition, click-through gap, freshness and trend — combined with weights declared as a visible constant. A factor missing from your export is redistributed across the ones that are present rather than scored as zero, because scoring a missing input as zero is a lie about the keyword.
+
+#### `low-ctr-page-finder`
+*Under-performing against position.* Low click-through rate is not the finding — low click-through rate *for the position you already hold* is. A page at position 18 with 1.1% CTR is behaving normally. A page at position 3 with 1.1% CTR is losing money every day. This computes the expected CTR for each row's position from a printed curve, then ranks by the clicks the gap is costing you.
+
+#### `content-refresh-prioritizer`
+*What to update this month.* Builds a ranked queue from four weighted factors — traffic at stake, decline severity, proximity to page one, staleness — with the weights printed, because a priority queue nobody can audit gets ignored. Effort is scored on a separate axis from priority, and the queue is cut at twenty, since a list longer than a month of work is not a queue.
 
 #### `traffic-forecast-calculator`
 *What is ranking worth.* Projects the clicks available at positions 10, 5, 3 and 1 for every keyword, then sums them into a site-level figure. It also states its three assumptions as findings rather than footnotes: that the position is reached and held, that the CTR curve holds for this SERP, and that no SERP feature eats the click.
@@ -123,6 +148,16 @@ node tools/landing-page-performance-grader.js https://example.com/pricing
 #### `landing-page-comparator`
 *A vs B, honestly.* Measures both pages the same way, then runs a two-proportion z-test on the conversion difference. A comparison that calls a coin-flip a winner is worse than no comparison, so the significance result is reported next to the verdict.
 
+#### `cro-audit-checker`
+*Eight-category conversion audit.* Scores a page on headline, value proposition, social proof, calls to action, objection handling, risk reversal, urgency and structure. Everything countable is counted in code first — CTA positions, proof words, form fields, heading hierarchy — and the model is asked only for the judgements code cannot make, like whether the proof is credible and whether the objections a real buyer has are answered.
+
+```bash
+node tools/cro-audit-checker.js https://example.com/pricing
+```
+
+#### `cta-analyzer`
+*Are your CTAs working.* Finds every call to action, scores its wording against printed constants (start, get, book and claim beat learn more, click here and submit), and maps where they sit through the page. The distribution check is the useful half: repeating one CTA is strength, five different CTAs is confusion, and most tools cannot tell those apart.
+
 #### `conversion-funnel-analyzer`
 *Where the funnel leaks.* Takes your steps in the order you give them, computes step and cumulative conversion rates, flags the largest absolute drop-off as the bottleneck, and sizes the prize — how many extra conversions you would get if the worst step matched the best one. That number is the reason anyone ever fixes it.
 
@@ -130,6 +165,13 @@ node tools/landing-page-performance-grader.js https://example.com/pricing
 
 #### `ab-test-significance-calculator`
 *Can I call this test.* Conversion rates, absolute and relative lift, pooled standard error, z-score, two-tailed p-value and the 95% confidence interval. It distinguishes "not significant" from "not yet" — an underpowered test has not decided anything either way, and calling an undecided test a loss is how winning variants get killed. It also runs the checks nobody runs: whole weeks, traffic split within 5% of even, and whether the observed lift sits inside the interval of no effect.
+
+#### `attribution-gap-checker`
+*Why the two numbers disagree.* Sets platform-reported conversions next to analytics-attributed conversions for the same period and prints both implied CPAs side by side, because two CPAs on the same spend is the finding. The gap is classified against stated bands — under 10% is model difference, 10–30% is the usual view-through and cross-device split, over 60% means one of the numbers is simply wrong — and it ends by naming which figure you are allowed to plan spend against.
+
+```bash
+printf 'ga4_conversions=412\nmeta_reported=690\nspend=8400\n' | node tools/attribution-gap-checker.js -
+```
 
 #### `utm-tracking-auditor`
 *Why your channel report is wrong.* Finds the taxonomy breaks that silently split one channel across several rows: case variants, separator variants, non-standard mediums, a source that duplicates its medium, campaigns differing by one character, paid links with no campaign, and UTMs on internal links — that last one wipes the original attribution and is the most expensive mistake on the list.
